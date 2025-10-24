@@ -1,0 +1,189 @@
+<div class="statistics-container">
+  <div class="card">
+    <h2>📊 Estadísticas Generales</h2>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando estadísticas...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+      <span class="alert-icon">⚠️</span>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <!-- Statistics Content -->
+    <div *ngIf="!isLoading && statistics" class="statistics-content">
+      
+      <!-- Summary Cards -->
+      <div class="summary-grid">
+        <div class="stat-card stat-primary">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <p class="stat-label">Total Empleados</p>
+            <p class="stat-value">{{ statistics.total_employees }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card stat-success">
+          <div class="stat-icon">📅</div>
+          <div class="stat-info">
+            <p class="stat-label">Edad Promedio</p>
+            <p class="stat-value">{{ statistics.average_age }} años</p>
+          </div>
+        </div>
+
+        <div class="stat-card stat-warning">
+          <div class="stat-icon">💰</div>
+          <div class="stat-info">
+            <p class="stat-label">Salario Promedio</p>
+            <p class="stat-value">${{ statistics.average_salary | number:'1.2-2' }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card stat-info">
+          <div class="stat-icon">📈</div>
+          <div class="stat-info">
+            <p class="stat-label">Rango Salarial</p>
+            <p class="stat-value-small">
+              ${{ statistics.salary_range.min | number:'1.0-0' }} -
+              ${{ statistics.salary_range.max | number:'1.0-0' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Grid -->
+      <div class="charts-grid">
+        
+        <!-- Sexo Distribution -->
+        <div class="chart-card">
+          <h3>👤 Distribución por Sexo</h3>
+          <div class="chart-container">
+            <canvas
+              baseChart
+              [data]="sexoChartData"
+              [options]="sexoChartOptions"
+              type="pie">
+            </canvas>
+          </div>
+          <div class="chart-legend">
+            <div *ngFor="let item of statistics.by_sexo" class="legend-item">
+              <span class="legend-label">{{ item.sexo }}:</span>
+              <span class="legend-value">
+                {{ item.total_employees }} ({{ (item.total_employees / statistics.total_employees * 100).toFixed(1) }}%)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Salary by Sexo -->
+        <div class="chart-card">
+          <h3>💵 Salario Promedio por Sexo</h3>
+          <div class="chart-container">
+            <canvas
+              baseChart
+              [data]="salaryBySexoChartData"
+              [options]="salaryBySexoChartOptions"
+              type="bar">
+            </canvas>
+          </div>
+          <div class="chart-details">
+            <div *ngFor="let item of statistics.by_sexo" class="detail-row">
+              <span>{{ item.sexo }}:</span>
+              <span class="detail-value">${{ item.average_salary | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Salary by Cargo -->
+        <div class="chart-card chart-card-wide">
+          <h3>💼 Salario Promedio por Cargo</h3>
+          <div class="chart-container-large">
+            <canvas
+              baseChart
+              [data]="salaryByCargoChartData"
+              [options]="salaryByCargoChartOptions"
+              type="bar">
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Statistics by Sexo -->
+      <div class="detailed-stats">
+        <h3>📋 Estadísticas Detalladas por Sexo</h3>
+        <div class="stats-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Sexo</th>
+                <th>Total Empleados</th>
+                <th>Salario Promedio</th>
+                <th>Salario Total</th>
+                <th>% del Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of statistics.by_sexo">
+                <td>
+                  <span
+                    class="badge"
+                    [ngClass]="{
+                      'badge-info': item.sexo === 'Masculino',
+                      'badge-success': item.sexo === 'Femenino',
+                      'badge-warning': item.sexo === 'Otro'
+                    }">
+                    {{ item.sexo }}
+                  </span>
+                </td>
+                <td>{{ item.total_employees }}</td>
+                <td class="text-right">
+                  ${{ item.average_salary | number:'1.2-2' }}
+                </td>
+                <td class="text-right">
+                  ${{ item.total_salary | number:'1.2-2' }}
+                </td>
+                <td>
+                  {{ (item.total_employees / statistics.total_employees * 100).toFixed(1) }}%
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Detailed Statistics by Cargo -->
+      <div class="detailed-stats">
+        <h3>💼 Estadísticas por Cargo</h3>
+        <div class="stats-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Cargo</th>
+                <th>Total Empleados</th>
+                <th>Salario Promedio</th>
+                <th>% del Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of statistics.by_cargo">
+                <td class="cargo-cell">{{ item.cargo }}</td>
+                <td>{{ item.total_employees }}</td>
+                <td class="text-right salary-cell">
+                  ${{ item.average_salary | number:'1.2-2' }}
+                </td>
+                <td>
+                  {{ (item.total_employees / statistics.total_employees * 100).toFixed(1) }}%
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div> <!-- /statistics-content -->
+  </div> <!-- /card -->
+</div> <!-- /statistics-container -->

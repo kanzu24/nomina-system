@@ -1,0 +1,26 @@
+# .gitignore
+
+# Secrets - NUNCA subir contraseñas
+secrets/
+*.txt
+
+# Variables de entorno
+.env
+
+# Archivos de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Node modules
+node_modules/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# Docker
+*.log

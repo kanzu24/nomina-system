@@ -1,0 +1,71 @@
+<div class="upload-container card">
+  <div class="upload-header">
+    <h2>📤 Cargar Archivo Excel</h2>
+    <p>Arrastra tu archivo o haz clic para seleccionar</p>
+  </div>
+
+  <!-- Drop Zone -->
+  <div 
+    class="drop-zone"
+    [class.dragging]="isDragging"
+    [class.has-file]="selectedFile"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+    (drop)="onDrop($event)"
+    (click)="triggerFileInput()">
+    
+    <input 
+      type="file" 
+      id="fileInput"
+      accept=".xlsx,.xls"
+      (change)="onFileSelected($event)"
+      style="display: none;">
+
+    <div *ngIf="!selectedFile && !isValidating" class="drop-zone-content">
+      <div class="upload-icon">📁</div>
+      <p class="drop-zone-text">Arrastra tu archivo Excel aquí</p>
+      <p class="drop-zone-subtext">o haz clic para seleccionar</p>
+      <div class="file-requirements">
+        <p>✓ Formato: .xlsx o .xls</p>
+        <p>✓ Tamaño máximo: 10MB</p>
+        <p>✓ Columnas requeridas: Nombre, Edad, Sexo, Cargo, Sueldo</p>
+      </div>
+    </div>
+
+    <div *ngIf="selectedFile && !isValidating" class="file-selected">
+      <div class="file-icon">📄</div>
+      <div class="file-info">
+        <p class="file-name">{{ fileName }}</p>
+        <p class="file-size">{{ (selectedFile.size / 1024).toFixed(2) }} KB</p>
+      </div>
+      <button class="btn-remove" (click)="removeFile(); $event.stopPropagation()">
+        ✕
+      </button>
+    </div>
+
+    <div *ngIf="isValidating" class="validating-state">
+      <div class="spinner"></div>
+      <p>Validando archivo...</p>
+      <p class="validating-subtext">Analizando estructura y contenido</p>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-error">
+    <span class="alert-icon">⚠️</span>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <!-- Instructions -->
+  <div class="instructions-card">
+    <h3>📋 Instrucciones</h3>
+    <ul>
+      <li>El archivo debe contener las siguientes columnas: <strong>Nombre, Edad, Sexo, Cargo, Sueldo</strong></li>
+      <li>Los nombres de las columnas pueden estar en mayúsculas o minúsculas</li>
+      <li>No se permiten caracteres especiales en los datos</li>
+      <li>El campo <strong>Sexo</strong> debe ser: Masculino, Femenino u Otro</li>
+      <li>La <strong>Edad</strong> debe estar entre 1 y 119 años</li>
+      <li>El <strong>Sueldo</strong> debe ser un valor numérico positivo</li>
+    </ul>
+  </div>
+</div>

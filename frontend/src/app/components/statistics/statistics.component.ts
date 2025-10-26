@@ -2,7 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges, AfterViewInit, OnDe
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
 import { ApiResponse, HttpErrorResponse } from '../../models/api-response.interface';
-import { Chart, registerables } from 'chart.js';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 Chart.register(...registerables);
 
@@ -68,39 +68,10 @@ export class StatisticsComponent implements OnInit, OnChanges, AfterViewInit, On
   isLoading: boolean = false;
   errorMessage: string = '';
 
-  private genderChart: Chart | null = null;
-  private salaryChart: Chart | null = null;
-  private ageChart: Chart | null = null;
-  private positionChart: Chart | null = null;
-
-  // Propiedades para los gráficos
-  sexoChartData: any = null;
-  sexoChartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom' }
-    }
-  };
-
-  salaryBySexoChartData: any = null;
-  salaryBySexoChartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false }
-    }
-  };
-
-  salaryByCargoChartData: any = null;
-  salaryByCargoChartOptions: any = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y',
-    plugins: {
-      legend: { display: false }
-    }
-  };
+  private genderChart: any = null;
+  private salaryChart: any = null;
+  private ageChart: any = null;
+  private positionChart: any = null;
 
   ngOnInit(): void {
     this.loadStatistics();
@@ -124,7 +95,6 @@ export class StatisticsComponent implements OnInit, OnChanges, AfterViewInit, On
       next: (response: ApiResponse<any>) => {
         this.isLoading = false;
         if (response.status === 200 && response.data) {
-          // Transformar los datos para que coincidan con la interfaz
           const rawData = response.data;
           
           this.statistics = {
@@ -141,7 +111,6 @@ export class StatisticsComponent implements OnInit, OnChanges, AfterViewInit, On
             by_cargo: this.transformByCargo(rawData)
           };
 
-          this.prepareChartData();
           setTimeout(() => this.createCharts(), 100);
         } else {
           this.errorMessage = response.message || 'Error al cargar estadísticas';
@@ -184,50 +153,6 @@ export class StatisticsComponent implements OnInit, OnChanges, AfterViewInit, On
     return [];
   }
 
-  prepareChartData(): void {
-    if (!this.statistics) return;
-
-    // Preparar datos para gráfico de género
-    this.sexoChartData = {
-      labels: this.statistics.by_sexo.map(s => s.sexo),
-      datasets: [{
-        data: this.statistics.by_sexo.map(s => s.total_employees),
-        backgroundColor: [
-          'rgba(54, 162, 235, 0.8)',
-          'rgba(255, 99, 132, 0.8)',
-          'rgba(255, 206, 86, 0.8)'
-        ]
-      }]
-    };
-
-    // Preparar datos para gráfico de salario por género
-    this.salaryBySexoChartData = {
-      labels: this.statistics.by_sexo.map(s => s.sexo),
-      datasets: [{
-        label: 'Salario Promedio',
-        data: this.statistics.by_sexo.map(s => s.average_salary),
-        backgroundColor: [
-          'rgba(75, 192, 192, 0.8)',
-          'rgba(153, 102, 255, 0.8)',
-          'rgba(255, 159, 64, 0.8)'
-        ]
-      }]
-    };
-
-    // Preparar datos para gráfico de salario por cargo
-    if (this.statistics.by_cargo && this.statistics.by_cargo.length > 0) {
-      const topCargos = this.statistics.by_cargo.slice(0, 10);
-      this.salaryByCargoChartData = {
-        labels: topCargos.map(c => c.cargo),
-        datasets: [{
-          label: 'Salario Promedio',
-          data: topCargos.map(c => c.average_salary),
-          backgroundColor: 'rgba(153, 102, 255, 0.8)'
-        }]
-      };
-    }
-  }
-
   createCharts(): void {
     if (!this.statistics) return;
 
@@ -238,33 +163,74 @@ export class StatisticsComponent implements OnInit, OnChanges, AfterViewInit, On
   }
 
   createGenderChart(): void {
+    if (!this.statistics) return;
+    
     const ctx = document.getElementById('sexoChart') as HTMLCanvasElement;
-    if (!ctx || !this.sexoChartData) return;
+    if (!ctx) return;
 
     if (this.genderChart) {
       this.genderChart.destroy();
     }
 
-    this.genderChart = new Chart(ctx, {
+    const config: ChartConfiguration<'pie'> = {
       type: 'pie',
-      data: this.sexoChartData,
-      options: this.sexoChartOptions
-    });
+      data: {
+        labels: this.statistics.by_sexo.map(s => s.sexo),
+        datasets: [{
+          data: this.statistics.by_sexo.map(s => s.total_employees),
+          backgroundColor: [
+            'rgba(54, 162, 235, 0.8)',
+            'rgba(255, 99, 132, 0.8)',
+            'rgba(255, 206, 86, 0.8)'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    };
+
+    this.genderChart = new Chart(ctx, config);
   }
 
   createSalaryChart(): void {
+    if (!this.statistics) return;
+    
     const ctx = document.getElementById('salaryBySexoChart') as HTMLCanvasElement;
-    if (!ctx || !this.salaryBySexoChartData) return;
+    if (!ctx) return;
 
     if (this.salaryChart) {
       this.salaryChart.destroy();
     }
 
-    this.salaryChart = new Chart(ctx, {
+    const config: ChartConfiguration<'bar'> = {
       type: 'bar',
-      data: this.salaryBySexoChartData,
-      options: this.salaryBySexoChartOptions
-    });
+      data: {
+        labels: this.statistics.by_sexo.map(s => s.sexo),
+        datasets: [{
+          label: 'Salario Promedio',
+          data: this.statistics.by_sexo.map(s => s.average_salary),
+          backgroundColor: [
+            'rgba(75, 192, 192, 0.8)',
+            'rgba(153, 102, 255, 0.8)',
+            'rgba(255, 159, 64, 0.8)'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    };
+
+    this.salaryChart = new Chart(ctx, config);
   }
 
   createAgeChart(): void {
@@ -279,7 +245,7 @@ export class StatisticsComponent implements OnInit, OnChanges, AfterViewInit, On
 
     const ageData = this.statistics.age_distribution;
 
-    this.ageChart = new Chart(ctx, {
+    const config: ChartConfiguration<'bar'> = {
       type: 'bar',
       data: {
         labels: Object.keys(ageData),
@@ -293,22 +259,44 @@ export class StatisticsComponent implements OnInit, OnChanges, AfterViewInit, On
         responsive: true,
         maintainAspectRatio: false
       }
-    });
+    };
+
+    this.ageChart = new Chart(ctx, config);
   }
 
   createPositionChart(): void {
+    if (!this.statistics || !this.statistics.by_cargo || this.statistics.by_cargo.length === 0) return;
+    
     const ctx = document.getElementById('salaryByCargoChart') as HTMLCanvasElement;
-    if (!ctx || !this.salaryByCargoChartData) return;
+    if (!ctx) return;
 
     if (this.positionChart) {
       this.positionChart.destroy();
     }
 
-    this.positionChart = new Chart(ctx, {
+    const topCargos = this.statistics.by_cargo.slice(0, 10);
+
+    const config: ChartConfiguration<'bar'> = {
       type: 'bar',
-      data: this.salaryByCargoChartData,
-      options: this.salaryByCargoChartOptions
-    });
+      data: {
+        labels: topCargos.map(c => c.cargo),
+        datasets: [{
+          label: 'Salario Promedio',
+          data: topCargos.map(c => c.average_salary),
+          backgroundColor: 'rgba(153, 102, 255, 0.8)'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    };
+
+    this.positionChart = new Chart(ctx, config);
   }
 
   refreshStatistics(): void {

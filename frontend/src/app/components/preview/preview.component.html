@@ -66,7 +66,7 @@
           </div>
           <div class="sheet-errors">
             <details>
-              <summary>Ver errores ({{ sheet.errors?.length || 0 }})</summary>
+              <summary>Ver errores ({{ sheet.errors.length || 0 }})</summary>
               <ul>
                 <li *ngFor="let error of sheet.errors">{{ error }}</li>
               </ul>
@@ -110,7 +110,7 @@
     <!-- Table -->
     <div *ngFor="let preview of previewData" [hidden]="activeTab !== preview.sheet_name">
       <div class="preview-info">
-        <p>Mostrando primeros {{ preview.data?.length || 0 }} de {{ preview.total_rows }} registros</p>
+        <p>Mostrando primeros {{ preview.data.length || 0 }} de {{ preview.total_rows }} registros</p>
       </div>
       
       <div class="table-container">

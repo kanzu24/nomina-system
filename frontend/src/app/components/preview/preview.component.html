@@ -7,15 +7,15 @@
       <div class="summary-item success">
         <span class="summary-icon">✓</span>
         <div>
-          <p class="summary-number">{{ validationResult.valid_sheets.length }}</p>
+          <p class="summary-number">{{ validSheets.length }}</p>
           <p class="summary-label">Hojas Válidas</p>
         </div>
       </div>
       
-      <div class="summary-item error" *ngIf="validationResult.invalid_sheets.length > 0">
+      <div class="summary-item error" *ngIf="invalidSheets.length > 0">
         <span class="summary-icon">✗</span>
         <div>
-          <p class="summary-number">{{ validationResult.invalid_sheets.length }}</p>
+          <p class="summary-number">{{ invalidSheets.length }}</p>
           <p class="summary-label">Hojas con Errores</p>
         </div>
       </div>
@@ -30,11 +30,11 @@
     </div>
 
     <!-- Valid Sheets -->
-    <div *ngIf="validationResult.valid_sheets.length > 0" class="sheets-section">
+    <div *ngIf="validSheets.length > 0" class="sheets-section">
       <h3>✅ Hojas Válidas</h3>
       <div class="sheets-list">
         <div 
-          *ngFor="let sheet of validationResult.valid_sheets"
+          *ngFor="let sheet of validSheets"
           class="sheet-item valid"
           [class.selected]="isSheetSelected(sheet.name)"
           (click)="toggleSheet(sheet.name)">
@@ -46,7 +46,7 @@
           </div>
           <div class="sheet-info">
             <p class="sheet-name">{{ sheet.name }}</p>
-            <p class="sheet-rows">{{ sheet.rows }} registros</p>
+            <p class="sheet-rows">{{ sheet.rows || 0 }} registros</p>
           </div>
           <span class="sheet-status">✓</span>
         </div>
@@ -54,19 +54,19 @@
     </div>
 
     <!-- Invalid Sheets -->
-    <div *ngIf="validationResult.invalid_sheets.length > 0" class="sheets-section">
+    <div *ngIf="invalidSheets.length > 0" class="sheets-section">
       <h3>⚠️ Hojas con Errores</h3>
       <div class="sheets-list">
         <div 
-          *ngFor="let sheet of validationResult.invalid_sheets"
+          *ngFor="let sheet of invalidSheets"
           class="sheet-item invalid">
           <div class="sheet-info">
             <p class="sheet-name">{{ sheet.name }}</p>
-            <p class="sheet-rows">{{ sheet.rows }} registros</p>
+            <p class="sheet-rows">{{ sheet.rows || 0 }} registros</p>
           </div>
           <div class="sheet-errors">
             <details>
-              <summary>Ver errores ({{ sheet.errors.length }})</summary>
+              <summary>Ver errores ({{ sheet.errors?.length || 0 }})</summary>
               <ul>
                 <li *ngFor="let error of sheet.errors">{{ error }}</li>
               </ul>
@@ -78,7 +78,7 @@
   </div>
 
   <!-- Actions -->
-  <div class="actions-container" *ngIf="validationResult.valid_sheets.length > 0">
+  <div class="actions-container" *ngIf="validSheets.length > 0">
     <button 
       class="btn btn-primary"
       [disabled]="selectedSheets.size === 0 || isLoadingPreview"
@@ -110,7 +110,7 @@
     <!-- Table -->
     <div *ngFor="let preview of previewData" [hidden]="activeTab !== preview.sheet_name">
       <div class="preview-info">
-        <p>Mostrando primeros {{ preview.data.length }} de {{ preview.total_rows }} registros</p>
+        <p>Mostrando primeros {{ preview.data?.length || 0 }} de {{ preview.total_rows }} registros</p>
       </div>
       
       <div class="table-container">
@@ -140,37 +140,3 @@
               <td>{{ row.cargo }}</td>
               <td class="text-right">${{ row.sueldo | number:'1.2-2' }}</td>
             </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Import Button -->
-    <div class="import-section">
-      <button 
-        class="btn btn-success btn-lg"
-        [disabled]="isImporting"
-        (click)="importData()">
-        <span *ngIf="!isImporting">💾 Cargar Datos a la Base de Datos</span>
-        <span *ngIf="isImporting">Importando...</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Messages -->
-  <div *ngIf="importMessage" class="alert alert-success slide-up">
-    <span class="alert-icon">✅</span>
-    <span>{{ importMessage }}</span>
-  </div>
-
-  <div *ngIf="importError" class="alert alert-error slide-up">
-    <span class="alert-icon">⚠️</span>
-    <span>{{ importError }}</span>
-  </div>
-
-  <!-- Loading Overlay -->
-  <div *ngIf="isImporting" class="loading-overlay">
-    <div class="spinner"></div>
-    <p>Importando datos...</p>
-  </div>
-</div>

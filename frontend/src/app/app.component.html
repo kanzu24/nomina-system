@@ -14,11 +14,13 @@
       <div class="step-label">Cargar Archivo</div>
     </div>
     <div class="step-line" [class.completed]="currentStep === 'preview' || currentStep === 'view'"></div>
+
     <div class="step" [class.active]="currentStep === 'preview'" [class.completed]="currentStep === 'view'">
       <div class="step-number">2</div>
       <div class="step-label">Previsualizar</div>
     </div>
     <div class="step-line" [class.completed]="currentStep === 'view'"></div>
+
     <div class="step" [class.active]="currentStep === 'view'">
       <div class="step-number">3</div>
       <div class="step-label">Ver Resultados</div>
@@ -29,29 +31,21 @@
   <div class="content-area">
     <!-- Upload Step -->
     <div *ngIf="currentStep === 'upload'" class="slide-up">
-      <app-upload (fileValidated)="onFileValidated($event)"></app-upload>
+      <app-upload (uploaded)="onFileUploaded($event)"></app-upload>
     </div>
 
     <!-- Preview Step -->
-    <div *ngIf="currentStep === 'preview'" class="slide-up">
-      <app-preview 
-        [validationResult]="validationResult"
-        [file]="fileContent"
-        (sheetsSelected)="onSheetsSelected($event)"
-        (importComplete)="onImportComplete()"
-        (backToUpload)="resetUpload()">
-      </app-preview>
+    <div *ngIf="currentStep === 'preview' && validationResult && fileContent" class="slide-up">
+      <app-preview [data]="fileContent" (confirmed)="onePreviewConfirmed($event)"></app-preview>
     </div>
 
     <!-- View Results Step -->
     <div *ngIf="currentStep === 'view'" class="slide-up">
       <div class="results-header">
         <h2>✅ Datos Importados Exitosamente</h2>
-        <button class="btn btn-secondary" (click)="resetUpload()">
-          Nueva Importación
-        </button>
+        <button class="btn btn-secondary" (click)="resetUpload()">🔄 Nueva Importación</button>
       </div>
-      
+
       <app-employees-list [refresh]="showEmployees"></app-employees-list>
       <app-statistics [refresh]="showEmployees"></app-statistics>
     </div>

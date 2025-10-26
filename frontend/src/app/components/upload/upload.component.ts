@@ -1,6 +1,7 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
+import { ApiResponse, ValidationResult, HttpErrorResponse } from '../../models/api-response.interface';
 
 @Component({
   selector: 'app-upload',
@@ -10,7 +11,13 @@ import { ApiService } from '../../services/api.service';
   styleUrls: ['./upload.component.css']
 })
 export class UploadComponent {
-  @Output() fileValidated = new EventEmitter<any>();
+  @Output() fileValidated = new EventEmitter<{
+    validation: ValidationResult;
+    file: File;
+  }>();
+
+  // Inyección moderna
+  private apiService = inject(ApiService);
 
   selectedFile: File | null = null;
   isDragging: boolean = false;
@@ -18,26 +25,26 @@ export class UploadComponent {
   errorMessage: string = '';
   fileName: string = '';
 
-  constructor(private apiService: ApiService) {}
-
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    this.handleFile(file);
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.handleFile(input.files[0]);
+    }
   }
 
-  onDragOver(event: DragEvent) {
+  onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.isDragging = true;
   }
 
-  onDragLeave(event: DragEvent) {
+  onDragLeave(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.isDragging = false;
   }
 
-  onDrop(event: DragEvent) {
+  onDrop(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.isDragging = false;
@@ -48,7 +55,7 @@ export class UploadComponent {
     }
   }
 
-  handleFile(file: File) {
+  handleFile(file: File): void {
     this.errorMessage = '';
     
     // Validar tipo de archivo
@@ -72,26 +79,26 @@ export class UploadComponent {
     this.validateFile();
   }
 
-  validateFile() {
+  validateFile(): void {
     if (!this.selectedFile) return;
 
     this.isValidating = true;
     this.errorMessage = '';
 
     this.apiService.validateExcel(this.selectedFile).subscribe({
-      next: (response) => {
+      next: (response: ApiResponse<ValidationResult>) => {
         this.isValidating = false;
         
-        if (response.status === 200) {
+        if (response.status === 200 && response.data) {
           this.fileValidated.emit({
             validation: response.data,
-            file: this.selectedFile
+            file: this.selectedFile!
           });
         } else {
           this.errorMessage = response.message || 'Error al validar el archivo';
         }
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         this.isValidating = false;
         this.errorMessage = error.error?.message || 'Error al procesar el archivo';
         console.error('Error validando archivo:', error);
@@ -99,13 +106,13 @@ export class UploadComponent {
     });
   }
 
-  removeFile() {
+  removeFile(): void {
     this.selectedFile = null;
     this.fileName = '';
     this.errorMessage = '';
   }
 
-  triggerFileInput() {
+  triggerFileInput(): void {
     const fileInput = document.getElementById('fileInput') as HTMLInputElement;
     fileInput?.click();
   }

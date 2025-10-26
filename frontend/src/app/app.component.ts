@@ -1,15 +1,21 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterOutlet } from '@angular/router';
+
+// Importar todos los componentes hijos
 import { UploadComponent } from './components/upload/upload.component';
 import { PreviewComponent } from './components/preview/preview.component';
 import { EmployeesListComponent } from './components/employees-list/employees-list.component';
 import { StatisticsComponent } from './components/statistics/statistics.component';
+
+import { ValidationResult } from './models/api-response.interface';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     CommonModule,
+    RouterOutlet,
     UploadComponent,
     PreviewComponent,
     EmployeesListComponent,
@@ -19,33 +25,57 @@ import { StatisticsComponent } from './components/statistics/statistics.componen
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'Sistema de Nómina';
+  title = 'Sistema de Gestión de Nómina';
+  
+  // Estados del flujo
   currentStep: 'upload' | 'preview' | 'view' = 'upload';
   
-  validationResult: any = null;
+  // Datos compartidos entre componentes
+  validationResult: ValidationResult | null = null;
   fileContent: File | null = null;
   selectedSheets: string[] = [];
   showEmployees: boolean = false;
 
-  onFileValidated(result: any) {
-    this.validationResult = result.validation;
-    this.fileContent = result.file;
-    
-    if (result.validation.valid_sheets.length > 0) {
-      this.currentStep = 'preview';
-    }
+  /**
+   * Manejador del evento de validación del archivo
+   * CORRECCIÓN: Tipar correctamente el parámetro
+   */
+  onFileValidated(event: { validation: ValidationResult; file: File }): void {
+    console.log('Archivo validado:', event);
+    this.validationResult = event.validation;
+    this.fileContent = event.file;
+    this.currentStep = 'preview';
   }
 
-  onSheetsSelected(sheets: string[]) {
+  /**
+   * Manejador de selección de hojas
+   */
+  onSheetsSelected(sheets: string[]): void {
+    console.log('Hojas seleccionadas:', sheets);
     this.selectedSheets = sheets;
   }
 
-  onImportComplete() {
+  /**
+   * Manejador de importación completada
+   */
+  onImportComplete(): void {
+    console.log('Importación completada');
     this.currentStep = 'view';
     this.showEmployees = true;
+    
+    // Forzar actualización
+    setTimeout(() => {
+      this.showEmployees = false;
+      setTimeout(() => {
+        this.showEmployees = true;
+      }, 50);
+    }, 100);
   }
 
-  resetUpload() {
+  /**
+   * Resetea el flujo para una nueva importación
+   */
+  resetUpload(): void {
     this.currentStep = 'upload';
     this.validationResult = null;
     this.fileContent = null;

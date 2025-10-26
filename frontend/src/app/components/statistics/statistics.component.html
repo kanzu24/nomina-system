@@ -62,12 +62,7 @@
         <div class="chart-card">
           <h3>👤 Distribución por Sexo</h3>
           <div class="chart-container">
-            <canvas
-              baseChart
-              [data]="sexoChartData"
-              [options]="sexoChartOptions"
-              type="pie">
-            </canvas>
+            <canvas id="sexoChart"></canvas>
           </div>
           <div class="chart-legend">
             <div *ngFor="let item of statistics.by_sexo" class="legend-item">
@@ -83,12 +78,7 @@
         <div class="chart-card">
           <h3>💵 Salario Promedio por Sexo</h3>
           <div class="chart-container">
-            <canvas
-              baseChart
-              [data]="salaryBySexoChartData"
-              [options]="salaryBySexoChartOptions"
-              type="bar">
-            </canvas>
+            <canvas id="salaryBySexoChart"></canvas>
           </div>
           <div class="chart-details">
             <div *ngFor="let item of statistics.by_sexo" class="detail-row">
@@ -102,12 +92,7 @@
         <div class="chart-card chart-card-wide">
           <h3>💼 Salario Promedio por Cargo</h3>
           <div class="chart-container-large">
-            <canvas
-              baseChart
-              [data]="salaryByCargoChartData"
-              [options]="salaryByCargoChartOptions"
-              type="bar">
-            </canvas>
+            <canvas id="salaryByCargoChart"></canvas>
           </div>
         </div>
       </div>
@@ -184,6 +169,6 @@
         </div>
       </div>
 
-    </div> <!-- /statistics-content -->
-  </div> <!-- /card -->
-</div> <!-- /statistics-container -->
+    </div>
+  </div>
+</div>

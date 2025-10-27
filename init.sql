@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS data_errors (
     id INT AUTO_INCREMENT PRIMARY KEY,
     import_id INT,
     sheet_name VARCHAR(255) NOT NULL,
-    row_number INT NOT NULL,
+    row_num INT NOT NULL,
     column_name VARCHAR(255),
     error_type VARCHAR(100) NOT NULL,
     error_message TEXT NOT NULL,

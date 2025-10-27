@@ -100,18 +100,124 @@ class ExcelService:
         """
         try:
             excel_file = pd.ExcelFile(BytesIO(file_content))
-            sheet_names = excel_file.sheet_names
-            results = {}
-
-            for sheet_name in sheet_names:
-                df = pd.read_excel(excel_file, sheet_name=sheet_name)
-                is_valid, errors = ExcelService.validate_sheet(df, sheet_name)
-                results[sheet_name] = {
-                    "is_valid": is_valid,
-                    "errors": errors
-                }
-
-            return results
+            valid_sheets = []
+            invalid_sheets = []
+            
+            for sheet_name in excel_file.sheet_names:
+                try:
+                    df = pd.read_excel(excel_file, sheet_name=sheet_name)
+                    is_valid, errors = ExcelService.validate_sheet(df, sheet_name)
+                    
+                    sheet_info = {
+                        "name": sheet_name,
+                        "rows": len(df),
+                        "valid": is_valid,
+                        "errors": errors
+                    }
+                    
+                    if is_valid:
+                        valid_sheets.append(sheet_info)
+                        logger.info(f"✅ Hoja válida: {sheet_name} ({len(df)} filas)")
+                    else:
+                        invalid_sheets.append(sheet_info)
+                        logger.warning(f"⚠️ Hoja inválida: {sheet_name} - {len(errors)} errores")
+                        
+                except Exception as e:
+                    logger.error(f"Error procesando hoja {sheet_name}: {e}")
+                    invalid_sheets.append({
+                        "name": sheet_name,
+                        "rows": 0,
+                        "valid": False,
+                        "errors": [f"Error al procesar la hoja: {str(e)}"]
+                    })
+            
+            return {
+                "valid_sheets": valid_sheets,
+                "invalid_sheets": invalid_sheets,
+                "total_sheets": len(excel_file.sheet_names)
+            }
+            
         except Exception as e:
             logger.error(f"Error procesando archivo Excel: {e}")
-            raise ValueError(f"Error al procesar archivo Excel: {str(e)}")
+            raise ValueError(f"Error al procesar archivo: {str(e)}")
+    
+    @staticmethod
+    def get_preview_data(file_content: bytes, sheet_names: List[str]) -> List[Dict[str, Any]]:
+        """
+        Obtener preview de datos de hojas seleccionadas
+        """
+        previews = []
+        
+        try:
+            excel_file = pd.ExcelFile(BytesIO(file_content))
+            
+            for sheet_name in sheet_names:
+                if sheet_name in excel_file.sheet_names:
+                    df = pd.read_excel(excel_file, sheet_name=sheet_name)
+                    df.columns = [normalize_column_name(col) for col in df.columns]
+                    
+                    # Convertir a diccionario y normalizar
+                    data = df.to_dict('records')
+                    for record in data:
+                        # Normalizar sexo
+                        if 'sexo' in record:
+                            sexo = str(record['sexo']).strip().lower()
+                            if sexo == 'masculino':
+                                record['sexo'] = 'Masculino'
+                            elif sexo == 'femenino':
+                                record['sexo'] = 'Femenino'
+                            elif sexo == 'otro':
+                                record['sexo'] = 'Otro'
+                    
+                    previews.append({
+                        "sheet_name": sheet_name,
+                        "data": data[:100],  # Limitar a 100 registros para preview
+                        "total_rows": len(df)
+                    })
+                    
+        except Exception as e:
+            logger.error(f"Error obteniendo preview: {e}")
+            raise
+        
+        return previews
+    
+    @staticmethod
+    def prepare_data_for_import(file_content: bytes, sheet_names: List[str]) -> List[Dict[str, Any]]:
+        """
+        Preparar datos de hojas seleccionadas para importar a BD
+        """
+        all_data = []
+        
+        try:
+            excel_file = pd.ExcelFile(BytesIO(file_content))
+            
+            for sheet_name in sheet_names:
+                if sheet_name in excel_file.sheet_names:
+                    df = pd.read_excel(excel_file, sheet_name=sheet_name)
+                    df.columns = [normalize_column_name(col) for col in df.columns]
+                    
+                    for _, row in df.iterrows():
+                        # Normalizar sexo
+                        sexo = str(row['sexo']).strip().lower()
+                        if sexo == 'masculino':
+                            sexo_value = 'Masculino'
+                        elif sexo == 'femenino':
+                            sexo_value = 'Femenino'
+                        else:
+                            sexo_value = 'Otro'
+                        
+                        employee_data = {
+                            "nombre": str(row['nombre']).strip(),
+                            "edad": int(row['edad']),
+                            "sexo": sexo_value,
+                            "cargo": str(row['cargo']).strip(),
+                            "sueldo": float(row['sueldo'])
+                        }
+                        all_data.append(employee_data)
+                        
+            logger.info(f"✅ Preparados {len(all_data)} registros para importar")
+            return all_data
+            
+        except Exception as e:
+            logger.error(f"Error preparando datos: {e}")
+            raise

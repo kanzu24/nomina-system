@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session 
+from sqlalchemy import text
 from app.database import get_db
 from app.utils.response import APIResponse
 from app.utils.logger_config import get_logger
@@ -36,14 +37,15 @@ async def health_check(db: Session = Depends(get_db)):
     """
     try:
         # Verificar conexión a BD
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
+        db_status = "connected"
         
         return APIResponse.success(
             title="Servicio Operativo",
             message="API y base de datos funcionando correctamente",
             data={
                 "timestamp": datetime.now().isoformat(),
-                "database": "connected",
+                "database": db_status,
                 "version": "1.0.0"
             }
         )

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
 from app import crud, schemas
+from app.api import upload
 from app.services.excel_service import ExcelService
 from app.utils.response import APIResponse
 from app.utils.logger_config import get_logger
@@ -526,3 +527,4 @@ async def get_all_routes():
         message=f"Total de {len(routes)} endpoints documentados",
         data={"routes": routes, "total": len(routes)}
     )
+

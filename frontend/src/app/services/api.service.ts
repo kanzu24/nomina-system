@@ -13,64 +13,64 @@ import {
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = 'http://localhost:5000/api';
+  private apiUrl = 'http://localhost:8000/api/v1';
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Valida un archivo Excel y retorna las hojas válidas e inválidas
-   * @param file Archivo Excel a validar
-   * @returns Observable con el resultado de la validación
-   */
-  validateExcel(file: File): Observable<ApiResponse<ValidationResult>> {
-    const formData = new FormData();
-    formData.append('file', file);
+/**
+ * Valida un archivo Excel y retorna las hojas válidas e inválidas
+ * @param file Archivo Excel a validar
+ * @returns Observable con el resultado de la validación
+ */
+validateExcel(file: File): Observable<ApiResponse<ValidationResult>> {
+  const formData = new FormData();
+  formData.append('file', file);
 
-    return this.http.post<ApiResponse<ValidationResult>>(
-      `${this.apiUrl}/validate`,
-      formData
-    ).pipe(
-      catchError(this.handleError)
-    );
-  }
+  return this.http.post<ApiResponse<ValidationResult>>(
+    `${this.apiUrl}/validate`,  // ✅ Esto ahora apunta a /api/v1/validate
+    formData
+  ).pipe(
+    catchError(this.handleError)
+  );
+}
 
-  /**
-   * Obtiene una previsualización de los datos de las hojas seleccionadas
-   * @param file Archivo Excel
-   * @param sheets Array con los nombres de las hojas a previsualizar
-   * @returns Observable con los datos de previsualización
-   */
-  previewExcel(file: File, sheets: string[]): Observable<ApiResponse<PreviewData[]>> {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('sheets', JSON.stringify(sheets));
+/**
+ * Obtiene una previsualización de los datos de las hojas seleccionadas
+ * @param file Archivo Excel
+ * @param sheets Array con los nombres de las hojas a previsualizar
+ * @returns Observable con los datos de previsualización
+ */
+previewExcel(file: File, sheets: string[]): Observable<ApiResponse<PreviewData[]>> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('sheets', JSON.stringify(sheets));
 
-    return this.http.post<ApiResponse<PreviewData[]>>(
-      `${this.apiUrl}/preview`,
-      formData
-    ).pipe(
-      catchError(this.handleError)
-    );
-  }
+  return this.http.post<ApiResponse<PreviewData[]>>(
+    `${this.apiUrl}/excel/preview`,  // ✅ Cambiado de /preview a /excel/preview
+    formData
+  ).pipe(
+    catchError(this.handleError)
+  );
+}
 
-  /**
-   * Importa los datos de las hojas seleccionadas a la base de datos
-   * @param file Archivo Excel
-   * @param sheets Array con los nombres de las hojas a importar
-   * @returns Observable con el resultado de la importación
-   */
-  importExcel(file: File, sheets: string[]): Observable<ApiResponse<ImportResult>> {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('sheets', JSON.stringify(sheets));
+/**
+ * Importa los datos de las hojas seleccionadas a la base de datos
+ * @param file Archivo Excel
+ * @param sheets Array con los nombres de las hojas a importar
+ * @returns Observable con el resultado de la importación
+ */
+importExcel(file: File, sheets: string[]): Observable<ApiResponse<ImportResult>> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('sheets', JSON.stringify(sheets));
 
-    return this.http.post<ApiResponse<ImportResult>>(
-      `${this.apiUrl}/import`,
-      formData
-    ).pipe(
-      catchError(this.handleError)
-    );
-  }
+  return this.http.post<ApiResponse<ImportResult>>(
+    `${this.apiUrl}/excel/import`,  // ✅ Cambiado de /import a /excel/import
+    formData
+  ).pipe(
+    catchError(this.handleError)
+  );
+}
 
   /**
    * Obtiene la lista de todos los empleados

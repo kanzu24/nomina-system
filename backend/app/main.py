@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.database import init_db
+from app.api import endpoints, health, upload  
 from app.api import endpoints, health
 from app.utils.logger_config import get_logger
 
@@ -26,6 +27,7 @@ app.add_middleware(
 
 # Incluir routers
 app.include_router(health.router, tags=["Health"])
+app.include_router(upload.router, prefix=settings.API_PREFIX, tags=["Upload"])  # ✅ AGREGAR ESTA LÍNEA
 app.include_router(endpoints.router, prefix=settings.API_PREFIX, tags=["API"])
 
 @app.on_event("startup")

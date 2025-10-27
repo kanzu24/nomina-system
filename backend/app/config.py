@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     
     # CORS
-    CORS_ORIGINS: list = ["http://localhost:4200", "http://localhost"]
+    CORS_ORIGINS: list = ["http://localhost:4200", "http://localhost" ,  "http://localhost:8080"] 
     
     # Upload
     MAX_UPLOAD_SIZE: int = 10 * 1024 * 1024  # 10MB

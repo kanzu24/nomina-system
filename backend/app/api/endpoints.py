@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Body
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Form  # ✅ Agregado Form
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
@@ -7,6 +7,7 @@ from app.api import upload
 from app.services.excel_service import ExcelService
 from app.utils.response import APIResponse
 from app.utils.logger_config import get_logger
+import json  # ✅ AGREGADO
 import os
 
 logger = get_logger(__name__)
@@ -268,26 +269,34 @@ async def get_sheets():
 @router.post("/excel/preview", response_model=dict)
 async def preview_excel_data(
     file: UploadFile = File(...),
-    selected_sheets: List[str] = Body(...)
+    sheets: str = Form(...)  # ✅ Cambiar a Form y recibir como string
 ):
     """
     **Preview de Datos**
     
     Muestra una vista previa de los datos de las hojas seleccionadas.
     
-    **Body:**
-```json
-    {
-        "selected_sheets": ["Hoja1", "Hoja2"]
-    }
-```
+    **Parámetros:**
+    - file: Archivo Excel
+    - sheets: JSON string con array de nombres de hojas ["Hoja1", "Hoja2"]
     
     **Retorna:**
     - HTTP 200: Preview generado
     - HTTP 400: Error en parámetros
     """
     try:
+        # Parsear el JSON string a lista
+        selected_sheets = json.loads(sheets)
+        
+        if not isinstance(selected_sheets, list):
+            return APIResponse.validation_error(
+                message="El parámetro 'sheets' debe ser un array JSON"
+            )
+        
+        # Leer contenido del archivo
         content = await file.read()
+        
+        # Generar preview
         previews = ExcelService.get_preview_data(content, selected_sheets)
         
         total_rows = sum(p['total_rows'] for p in previews)
@@ -298,6 +307,10 @@ async def preview_excel_data(
             data=previews
         )
         
+    except json.JSONDecodeError:
+        return APIResponse.validation_error(
+            message="Formato JSON inválido en el parámetro 'sheets'"
+        )
     except Exception as e:
         logger.error(f"Error generando preview: {e}")
         return APIResponse.error(
@@ -308,7 +321,7 @@ async def preview_excel_data(
 @router.post("/excel/import", response_model=dict)
 async def import_excel_data(
     file: UploadFile = File(...),
-    selected_sheets: List[str] = Body(...),
+    sheets: str = Form(...),  # ✅ Cambiar a Form y recibir como string
     db: Session = Depends(get_db)
 ):
     """
@@ -316,12 +329,9 @@ async def import_excel_data(
     
     Importa los datos de las hojas seleccionadas a la base de datos.
     
-    **Body:**
-```json
-    {
-        "selected_sheets": ["Hoja1", "Hoja2"]
-    }
-```
+    **Parámetros:**
+    - file: Archivo Excel
+    - sheets: JSON string con array de nombres de hojas
     
     **Retorna:**
     - HTTP 201: Datos importados exitosamente
@@ -329,6 +339,14 @@ async def import_excel_data(
     - HTTP 500: Error del servidor
     """
     try:
+        # Parsear el JSON string a lista
+        selected_sheets = json.loads(sheets)
+        
+        if not isinstance(selected_sheets, list):
+            return APIResponse.validation_error(
+                message="El parámetro 'sheets' debe ser un array JSON"
+            )
+        
         content = await file.read()
         filename = file.filename
         
@@ -365,6 +383,10 @@ async def import_excel_data(
             status_code=201
         )
         
+    except json.JSONDecodeError:
+        return APIResponse.validation_error(
+            message="Formato JSON inválido en el parámetro 'sheets'"
+        )
     except Exception as e:
         logger.error(f"Error importando datos: {e}")
         

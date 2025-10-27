@@ -43,10 +43,10 @@ validateExcel(file: File): Observable<ApiResponse<ValidationResult>> {
 previewExcel(file: File, sheets: string[]): Observable<ApiResponse<PreviewData[]>> {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('sheets', JSON.stringify(sheets));
+  formData.append('sheets', JSON.stringify(sheets));  // ✅ Convertir a JSON string
 
   return this.http.post<ApiResponse<PreviewData[]>>(
-    `${this.apiUrl}/excel/preview`,  // ✅ Cambiado de /preview a /excel/preview
+    `${this.apiUrl}/excel/preview`,
     formData
   ).pipe(
     catchError(this.handleError)
@@ -62,10 +62,10 @@ previewExcel(file: File, sheets: string[]): Observable<ApiResponse<PreviewData[]
 importExcel(file: File, sheets: string[]): Observable<ApiResponse<ImportResult>> {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('sheets', JSON.stringify(sheets));
+  formData.append('sheets', JSON.stringify(sheets));  // ✅ Convertir a JSON string
 
   return this.http.post<ApiResponse<ImportResult>>(
-    `${this.apiUrl}/excel/import`,  // ✅ Cambiado de /import a /excel/import
+    `${this.apiUrl}/excel/import`,
     formData
   ).pipe(
     catchError(this.handleError)
